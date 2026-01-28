@@ -2,7 +2,7 @@
 
 **Live Demo:** https://j8ngg.github.io/phishing-awareness-quiz/
 
-An interactive, browser-based phishing awareness quiz designed for K–12 students.
+An interactive, browser-based phishing awareness quiz designed for K-12 students.
 
 ## What it does
 - Shows 5 randomized “email” scenarios pulled from a larger question bank
