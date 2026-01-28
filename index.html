@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Quiz - Mater East LV Academy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #c31432 0%, #e94057 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('knight-logo.png');
+            background-size: 120px 120px;
+            background-repeat: repeat;
+            opacity: 0.08;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c31432 0%, #e94057 100%);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px 40px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: #c31432;
+            border-radius: 4px;
+        }
+
+        .content::-webkit-scrollbar-thumb:hover {
+            background: #a01028;
+        }
+
+        .intro-screen, .quiz-screen, .results-screen, .leaderboard-screen {
+            display: none;
+        }
+
+        .intro-screen.active, .quiz-screen.active, .results-screen.active, .leaderboard-screen.active {
+            display: block;
+        }
+
+        .intro-content {
+            text-align: center;
+        }
+
+        .intro-content h2 {
+            color: #c31432;
+            margin-bottom: 20px;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .intro-content p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .name-input {
+            margin: 30px 0;
+        }
+
+        .name-input input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+
+        .name-input input:focus {
+            outline: none;
+            border-color: #c31432;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #c31432 0%, #e94057 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(195, 20, 50, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .email-container {
+            background: #ffffff;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .email-header {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .email-field {
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+
+        .email-field strong {
+            color: #000;
+            display: inline-block;
+            width: 80px;
+            font-weight: 700;
+        }
+
+        .email-field span {
+            color: #222;
+            font-weight: 500;
+        }
+
+        .email-body {
+            line-height: 1.8;
+            color: #000;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .email-link {
+            color: #0066cc;
+            text-decoration: underline;
+            word-break: break-all;
+        }
+
+        .question-counter {
+            text-align: center;
+            font-size: 1.3em;
+            color: #c31432;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .answer-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .answer-btn {
+            flex: 1;
+            max-width: 250px;
+            padding: 20px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border: 3px solid #ddd;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .answer-btn:hover {
+            border-color: #c31432;
+            background: #fff5f5;
+        }
+
+        .answer-btn.correct {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .answer-btn.incorrect {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+
+        .feedback h3 {
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .feedback p {
+            font-weight: 500;
+            line-height: 1.7;
+        }
+
+        .results-content {
+            text-align: center;
+        }
+
+        .results-content h2 {
+            color: #c31432;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .score-display {
+            font-size: 4em;
+            color: #28a745;
+            font-weight: bold;
+            margin: 30px 0;
+        }
+
+        .score-message {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+        }
+
+        .leaderboard h3 {
+            color: #c31432;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th {
+            background: linear-gradient(135deg, #c31432 0%, #e94057 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .leaderboard-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            font-weight: 500;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rank {
+            font-weight: 700;
+            color: #c31432;
+            font-size: 1.2em;
+        }
+
+        .rank-1 { color: #FFD700; }
+        .rank-2 { color: #C0C0C0; }
+        .rank-3 { color: #CD7F32; }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #c31432 0%, #e94057 100%);
+            transition: width 0.3s;
+        }
+
+        .warning-badge {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .safe-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        /* Red Flag Popup */
+        .redflag-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .redflag-popup.show {
+            display: flex;
+        }
+
+        .redflag-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .redflag-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .redflag-header h2 {
+            color: #c31432;
+            font-size: 2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .redflag-header p {
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .redflag-email {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .redflag-indicator {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .redflag-indicator::before {
+            content: "🚩";
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+
+        .redflag-indicator.critical {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .redflag-indicator.critical::before {
+            content: "⚠️";
+        }
+
+        .highlight-text {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .highlight-critical {
+            background: #f8d7da;
+            color: #dc3545;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .redflag-tip {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .redflag-tip h3 {
+            color: #28a745;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .redflag-next-btn {
+            background: linear-gradient(135deg, #c31432 0%, #e94057 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .redflag-next-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .answer-buttons {
+                flex-direction: column;
+            }
+
+            .answer-btn {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+    
+    <!-- Red Flag Popup -->
+    <div class="redflag-popup" id="redflagPopup">
+        <div class="redflag-content">
+            <div class="redflag-header">
+                <h2 id="redflagTitle">🚩 Spot the Red Flags!</h2>
+                <p id="redflagSubtitle">Here's how you could have detected this phishing attempt:</p>
+            </div>
+            <div id="redflagDetails"></div>
+            <button class="redflag-next-btn" onclick="closeRedFlagPopup()">Continue</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🎣 Phishing Awareness Quiz</h1>
+            <p>Mater East LV Academy - Cybersecurity Challenge</p>
+        </div>
+
+        <div class="content">
+            <!-- Intro Screen -->
+            <div class="intro-screen active">
+                <div class="intro-content">
+                    <h2>Welcome to the Phishing Quiz! 🔒</h2>
+                    <p>Test your ability to spot phishing emails! Phishing is when cybercriminals try to trick you into giving away personal information or clicking malicious links.</p>
+                    <p>You'll see 5 emails. Your job is to decide if each one is <strong>LEGITIMATE</strong> or <strong>PHISHING</strong>.</p>
+                    <p>Pay attention to sender addresses, links, spelling, and urgency tactics!</p>
+                    
+                    <div class="name-input">
+                        <input type="text" id="playerName" placeholder="Enter your name to start" maxlength="30">
+                    </div>
+                    
+                    <button class="btn" onclick="startQuiz()">Start Quiz</button>
+                    <button class="btn btn-secondary" onclick="showLeaderboard()">View Leaderboard</button>
+                </div>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div class="quiz-screen">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="question-counter" id="questionCounter"></div>
+                
+                <div class="email-container" id="emailContainer">
+                    <!-- Email content will be inserted here -->
+                </div>
+
+                <div class="answer-buttons" id="answerButtons">
+                    <button class="answer-btn" onclick="checkAnswer('legitimate')">✅ Legitimate</button>
+                    <button class="answer-btn" onclick="checkAnswer('phishing')">⚠️ Phishing</button>
+                </div>
+
+                <div class="feedback" id="feedback">
+                    <!-- Feedback will be inserted here -->
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn" id="nextBtn" onclick="nextQuestion()" style="display: none;">Next Question</button>
+                </div>
+            </div>
+
+            <!-- Results Screen -->
+            <div class="results-screen">
+                <div class="results-content">
+                    <h2>Quiz Complete! 🎉</h2>
+                    <div class="score-display" id="finalScore"></div>
+                    <div class="score-message" id="scoreMessage"></div>
+                    
+                    <button class="btn" onclick="showLeaderboard()">View Leaderboard</button>
+                    <button class="btn btn-secondary" onclick="restartQuiz()">Try Again</button>
+                </div>
+            </div>
+
+            <!-- Leaderboard Screen -->
+            <div class="leaderboard-screen">
+                <div class="leaderboard">
+                    <h3>🏆 Leaderboard</h3>
+                    <table class="leaderboard-table" id="leaderboardTable">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Name</th>
+                                <th>Score</th>
+                                <th>Time</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody">
+                            <!-- Leaderboard entries will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn" onclick="backToIntro()">Back to Quiz</button>
+                    <button class="btn btn-secondary" onclick="resetLeaderboard()" style="background: #dc3545;">Reset Leaderboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Confetti Effect
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let confettiPieces = [];
+
+        class ConfettiPiece {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.w = Math.random() * 10 + 5;
+                this.h = Math.random() * 5 + 5;
+                this.color = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'][Math.floor(Math.random() * 7)];
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 10 - 5;
+                this.velocityX = Math.random() * 4 - 2;
+                this.velocityY = Math.random() * 3 + 2;
+                this.opacity = 1;
+            }
+
+            update() {
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+                this.rotation += this.rotationSpeed;
+                this.velocityY += 0.1; // gravity
+                this.opacity -= 0.005;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+                ctx.restore();
+            }
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                confettiPieces.push(new ConfettiPiece());
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            confettiPieces.forEach((piece, index) => {
+                piece.update();
+                piece.draw();
+                
+                if (piece.opacity <= 0 || piece.y > canvas.height) {
+                    confettiPieces.splice(index, 1);
+                }
+            });
+
+            if (confettiPieces.length > 0) {
+                requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        function launchConfetti() {
+            createConfetti();
+            animateConfetti();
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Quiz data - 50 question bank
+        const questionBank = [
+            // School Emails
+            {
+                from: "principal@matereastlv.org",
+                subject: "Congratulations on Your Science Fair Project!",
+                body: "Dear Student,<br><br>I wanted to personally congratulate you on your outstanding science fair project! Your hard work and dedication have not gone unnoticed.<br><br>Please stop by my office this week to discuss potential opportunities for presenting your work at the regional competition.<br><br>Best regards,<br>Principal Anderson<br>Mater East LV Academy",
+                type: "legitimate",
+                explanation: "This is a legitimate email. It has the correct school domain, professional language, no suspicious links, and a reasonable request. The sender's email matches the school's domain format."
+            },
+            {
+                from: "tech.support@matereast-verify.com",
+                subject: "URGENT: Verify Your Student Account Within 24 Hours",
+                body: "Dear Student,<br><br>Your student account will be SUSPENDED in 24 hours due to unusual activity. To prevent suspension, you must verify your account immediately.<br><br>Click here to verify: <span class='email-link'>http://matereast-verify.com/login?verify=student</span><br><br>Failure to verify will result in permanent account deletion and loss of all your files.<br><br>IT Department<br>Mater East Academy",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (matereast-verify.com vs matereastlv.org), (2) Creates false urgency with threats, (3) Suspicious link to external site, (4) Threats of account deletion, (5) Generic greeting instead of your name."
+            },
+            {
+                from: "library@matereastlv.org",
+                subject: "Book Return Reminder",
+                body: "Hello,<br><br>This is a friendly reminder that the following book is due to be returned by Friday, November 1st:<br><br><strong>\"The Science of Cybersecurity\" - Call Number: 005.8 SCI</strong><br><br>You can return it to the library during regular hours (7:30 AM - 4:00 PM) or use the drop box outside the main entrance.<br><br>If you need to renew, please visit the library or call extension 234.<br><br>Thank you,<br>Ms. Rodriguez<br>School Librarian",
+                type: "legitimate",
+                explanation: "This is a legitimate email. It comes from the official school domain, contains specific information (book title, call number, dates), provides multiple options for action, and includes contact information."
+            },
+            {
+                from: "activities@matereastlv.org",
+                subject: "Science Fair Special Guest - Schedule Confirmation",
+                body: "Hi Everyone,<br><br>Just a reminder that we have a special guest presenting on cybersecurity during next week's science fair. The presentation will take place in the auditorium on Thursday at 2:00 PM.<br><br>All students participating in the fair are encouraged to attend. This will be a great opportunity to learn about online safety and phishing awareness.<br><br>Please confirm your attendance by replying to this email or stopping by the activities office.<br><br>See you there!<br><br>Mr. Patterson<br>Activities Coordinator",
+                type: "legitimate",
+                explanation: "This is a legitimate email. It comes from the official school domain (@matereastlv.org), provides specific event details (date, time, location), has a reasonable request, and relates to legitimate school activities."
+            },
+            
+            // Amazon Phishing
+            {
+                from: "account-update@amazon-security.com",
+                subject: "Your Amazon Account Has Been Locked",
+                body: "Dear Customer,<br><br>We detected unusual activity on your Amazon account. Your account has been temporarily locked for security reasons.<br><br>To unlock your account, verify your identity immediately:<br><span class='email-link'>http://amazon-verify-secure.com/account/verify</span><br><br>If you don't verify within 24 hours, your account will be permanently disabled and you'll lose all Prime benefits.<br><br>Amazon Security Team",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Suspicious domain (amazon-security.com, not amazon.com), (2) Fake urgency and threats, (3) External verification link, (4) Threats of permanent account loss. Real Amazon uses @amazon.com and doesn't send threatening emails."
+            },
+            {
+                from: "no-reply@amazon.com",
+                subject: "Your Order #457-2845691-3826 Has Shipped",
+                body: "Hello,<br><br>Good news! Your order has shipped and is on its way.<br><br><strong>Estimated Delivery:</strong> November 2, 2025<br><strong>Tracking Number:</strong> 1Z999AA10123456784<br><br>You can track your package in Your Orders. If you have questions, visit our Help section.<br><br>Thanks for shopping with us!<br>Amazon.com",
+                type: "legitimate",
+                explanation: "This is legitimate. It uses the real Amazon domain (@amazon.com), has specific order details, provides tracking information, and directs you to official Amazon pages without suspicious links."
+            },
+            {
+                from: "prize@amazon-rewards.net",
+                subject: "🎉 Congratulations! You've Won a $1000 Amazon Gift Card!",
+                body: "CONGRATULATIONS!!!<br><br>You have been selected as our LUCKY WINNER for a $1000 Amazon Gift Card!<br><br>CLAIM NOW before it expires:<br><span class='email-link'>http://claim-amazon-prize.net/winner?id=458392</span><br><br>Only 5 MINUTES to claim! Click now or lose your prize forever!<br><br>This is a LIMITED TIME OFFER!<br><br>Amazon Rewards Program",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Fake domain (amazon-rewards.net), (2) Unsolicited prize you didn't enter for, (3) Extreme urgency ('5 MINUTES'), (4) Excessive caps and exclamation marks, (5) External suspicious link. This is a classic scam!"
+            },
+            
+            // Starbucks Phishing
+            {
+                from: "rewards@starbucks-rewards.net",
+                subject: "Claim Your FREE Starbucks Drink!",
+                body: "Hey Coffee Lover! ☕<br><br>You've earned a FREE drink! Your Starbucks Rewards account has a complimentary beverage waiting for you.<br><br>Click to redeem NOW:<br><span class='email-link'>http://starbucks-claim-free.com/redeem?user=student</span><br><br>Expires in 3 hours!<br><br>Starbucks Rewards",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (starbucks-rewards.net instead of starbucks.com), (2) Unsolicited free offer, (3) Urgent expiration, (4) External redemption link. Real Starbucks emails come from @starbucks.com and rewards are managed in their official app."
+            },
+            {
+                from: "rewards@starbucks.com",
+                subject: "Happy Birthday! Here's a treat on us ☕",
+                body: "Happy Birthday!<br><br>Celebrate your special day with a birthday reward on us! Stop by any Starbucks location and enjoy a free drink or food item of your choice.<br><br>Your reward is valid for 7 days. Just show your Starbucks Rewards account in the app at checkout.<br><br>Cheers,<br>Starbucks Rewards Team",
+                type: "legitimate",
+                explanation: "This is legitimate. It comes from Starbucks' official email domain (@starbucks.com), has a reasonable timeframe (7 days, not urgent), directs you to use the official app, and doesn't ask for personal information or include suspicious links."
+            },
+            
+            // USPS / Package Delivery Scams
+            {
+                from: "delivery@usps-package.com",
+                subject: "URGENT: Package Delivery Failed - Action Required",
+                body: "USPS Notification<br><br>We attempted to deliver your package but no one was home.<br><br><strong>Tracking: US9384750012345</strong><br><br>To reschedule delivery, pay the $2.95 redelivery fee:<br><span class='email-link'>http://usps-redelivery-service.com/pay</span><br><br>Your package will be returned to sender in 48 hours if you don't act now.<br><br>USPS Delivery Services",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (usps-package.com, not usps.com), (2) Unexpected delivery you didn't order, (3) Fake redelivery fee, (4) External payment link, (5) Urgent deadline. USPS never asks for fees via email links!"
+            },
+            {
+                from: "tracking@usps.com",
+                subject: "Your Package Is Out for Delivery",
+                body: "Hello,<br><br>Your package is out for delivery today.<br><br><strong>Tracking Number:</strong> 9400110200882617856743<br><strong>Expected Delivery:</strong> By 8:00 PM today<br><br>Track your package at usps.com/tracking<br><br>Thank you for using USPS.<br><br>United States Postal Service",
+                type: "legitimate",
+                explanation: "This is legitimate. Uses official USPS domain (@usps.com), provides real tracking format, directs to official website (usps.com), no payment requests, and has professional formatting."
+            },
+            {
+                from: "fedex-shipping@fedex-delivery.net",
+                subject: "FedEx Package Notification - Customs Fee Required",
+                body: "FedEx Express<br><br>Your international package is being held at customs. A customs clearance fee of $4.99 must be paid to release your shipment.<br><br>Pay customs fee:<br><span class='email-link'>http://fedex-customs-pay.com/release?id=FDX483920</span><br><br>Failure to pay within 24 hours will result in package return to sender.<br><br>FedEx International",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Fake domain (fedex-delivery.net, not fedex.com), (2) Unexpected international package, (3) Suspicious customs fee payment, (4) External payment link, (5) Urgent threat. Real FedEx uses @fedex.com!"
+            },
+            
+            // Target Scams
+            {
+                from: "rewards@target-circle.com",
+                subject: "🎯 $100 Target Gift Card Waiting For You!",
+                body: "Congratulations Target Shopper!<br><br>You've been randomly selected to receive a $100 Target Gift Card!<br><br>Claim your reward here:<br><span class='email-link'>http://target-rewards-claim.com/gift?winner=2024</span><br><br>Limited time only - claim within 1 hour!<br><br>Target Rewards Team",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (target-circle.com, not target.com), (2) Unsolicited gift card, (3) 'Random selection' you didn't enter, (4) Urgent 1-hour deadline, (5) External claim link. Classic phishing scam!"
+            },
+            {
+                from: "orders@target.com",
+                subject: "Your Target Drive Up Order is Ready!",
+                body: "Your order is ready for pickup!<br><br><strong>Order #:</strong> 2458-6291<br><strong>Pickup Location:</strong> Target - Las Vegas Downtown<br><br>Park in any Drive Up spot and we'll bring it right out. Just let us know you're here in the Target app.<br><br>Thanks for choosing Target!<br>Team Target",
+                type: "legitimate",
+                explanation: "This is legitimate. Official Target domain (@target.com), specific order number, refers to official Target app, no suspicious links or payment requests, and describes normal Target Drive Up service."
+            },
+            
+            // PayPal / Venmo Scams
+            {
+                from: "security@paypal-protection.com",
+                subject: "Your PayPal Account Has Been Limited",
+                body: "Dear PayPal User,<br><br>We've detected unusual activity on your account. Your PayPal account has been limited for your protection.<br><br>Restore your account access:<br><span class='email-link'>http://paypal-secure-restore.com/verify</span><br><br>Please verify your identity within 12 hours or your account will be permanently closed and funds will be frozen.<br><br>PayPal Security Center",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Fake domain (paypal-protection.com, not paypal.com), (2) Generic greeting 'Dear PayPal User', (3) Threats of account closure, (4) External verification link, (5) Urgent deadline. Real PayPal uses @paypal.com!"
+            },
+            {
+                from: "service@paypal.com",
+                subject: "Receipt for Your Payment to Netflix",
+                body: "You sent a payment<br><br><strong>Amount:</strong> $15.99 USD<br><strong>To:</strong> Netflix<br><strong>Transaction ID:</strong> 3KJ85920485049<br><strong>Date:</strong> Oct 28, 2025<br><br>View transaction details in your PayPal account.<br><br>Questions? Visit the PayPal Help Center.<br><br>PayPal",
+                type: "legitimate",
+                explanation: "This is legitimate. Official PayPal domain (@paypal.com), specific transaction details, reasonable amount, refers to official PayPal account for details, no suspicious links or requests for information."
+            },
+            {
+                from: "venmo-support@venmo-help.net",
+                subject: "Unusual Venmo Transaction Detected!",
+                body: "Venmo Alert!<br><br>We noticed a payment of $250.00 from your Venmo account. If this wasn't you, cancel it immediately:<br><br><span class='email-link'>http://venmo-cancel-payment.com/dispute?id=VN48503</span><br><br>You have 30 minutes to cancel or the payment will be completed!<br><br>Venmo Fraud Protection",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (venmo-help.net, not venmo.com), (2) Fake urgency (30 minutes), (3) Tries to scare you with unauthorized payment, (4) External cancel link. Real Venmo is managed through their app and uses @venmo.com!"
+            },
+            
+            // Netflix / Streaming Scams
+            {
+                from: "billing@netflix-payment.com",
+                subject: "Your Netflix Payment Failed - Update Required",
+                body: "Netflix<br><br>We were unable to process your payment. Your account will be suspended in 24 hours if you don't update your payment method.<br><br>Update payment info:<br><span class='email-link'>http://netflix-billing-update.com/payment</span><br><br>Don't lose access to your favorite shows!<br><br>The Netflix Team",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (netflix-payment.com, not netflix.com), (2) Payment scare tactic, (3) Urgent 24-hour deadline, (4) External payment link. Netflix sends billing emails from @netflix.com and updates are done through their app/website!"
+            },
+            {
+                from: "info@netflix.com",
+                subject: "New on Netflix This Week",
+                body: "What to watch this week<br><br>Check out these new releases and trending shows on Netflix:<br><br>🎬 New Action Thriller<br>🎭 Award-Winning Drama<br>😂 Comedy Special<br><br>Start watching in the Netflix app or at netflix.com<br><br>Enjoy!<br>Netflix",
+                type: "legitimate",
+                explanation: "This is legitimate. Official Netflix domain (@netflix.com), promotional content about shows, refers to official Netflix app/website, no payment requests or suspicious links."
+            },
+            
+            // Apple / Tech Scams
+            {
+                from: "apple-id@apple-security.net",
+                subject: "Your Apple ID Has Been Locked",
+                body: "Dear Customer,<br><br>Your Apple ID has been locked due to suspicious activity. To unlock your account and restore access to iCloud, App Store, and all Apple services, verify your identity immediately.<br><br>Unlock account:<br><span class='email-link'>http://apple-id-unlock.com/verify</span><br><br>If not verified in 6 hours, your Apple ID will be permanently deleted along with all data.<br><br>Apple Security",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Fake domain (apple-security.net, not apple.com), (2) Generic greeting, (3) Severe threats about data deletion, (4) External unlock link, (5) Urgent deadline. Real Apple emails come from @apple.com!"
+            },
+            {
+                from: "no_reply@apple.com",
+                subject: "Your receipt from Apple",
+                body: "RECEIPT<br><br>Thank you for your purchase.<br><br><strong>1 item</strong><br>Minecraft - $6.99<br><br><strong>Total:</strong> $6.99<br><strong>Payment Method:</strong> Apple Card ending in 4829<br><br>View your receipt in the App Store app or at reportaproblem.apple.com<br><br>Apple",
+                type: "legitimate",
+                explanation: "This is legitimate. Official Apple domain (@apple.com), specific purchase details, reasonable amount, refers to official Apple services (App Store, reportaproblem.apple.com), professional formatting."
+            },
+            
+            // Walmart Scams
+            {
+                from: "sweepstakes@walmart-winners.com",
+                subject: "🎉 You Won a $500 Walmart Shopping Spree!",
+                body: "CONGRATULATIONS!<br><br>You are the GRAND PRIZE WINNER of our Walmart Customer Appreciation Sweepstakes!<br><br>Prize: $500 Walmart Gift Card<br><br>Claim now:<br><span class='email-link'>http://walmart-prize-claim.net/winner</span><br><br>Must claim within 2 hours or prize goes to alternate winner!<br><br>Walmart Sweepstakes Team",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Fake domain (walmart-winners.com, not walmart.com), (2) Unsolicited sweepstakes win, (3) You didn't enter any contest, (4) Extreme urgency (2 hours), (5) External claim link. Classic prize scam!"
+            },
+            
+            // Uber / Lyft Scams
+            {
+                from: "receipts@uber-rides.net",
+                subject: "Your Uber Receipt - $127.50",
+                body: "Thanks for riding with Uber<br><br><strong>Trip Fare:</strong> $127.50<br><strong>From:</strong> Downtown<br><strong>To:</strong> Airport<br><strong>Date:</strong> Oct 28, 2025<br><br>If you didn't take this trip, report fraud immediately:<br><span class='email-link'>http://uber-fraud-report.com/dispute</span><br><br>Uber Technologies Inc.",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (uber-rides.net, not uber.com), (2) High fare to create panic, (3) 'If you didn't take this trip' scare tactic, (4) External fraud report link. Real Uber receipts come from @uber.com and disputes are handled in-app!"
+            },
+            {
+                from: "uber@uber.com",
+                subject: "Thanks for riding with Uber",
+                body: "Your trip with Marcus<br><br><strong>Trip Fare:</strong> $12.45<br><strong>From:</strong> Your pickup location<br><strong>To:</strong> Your destination<br><strong>Date:</strong> Oct 28, 2025<br><br>Rate your trip in the Uber app<br><br>Thanks for riding!<br>Uber",
+                type: "legitimate",
+                explanation: "This is legitimate. Official Uber domain (@uber.com), reasonable fare amount, standard trip receipt format, refers to Uber app for rating, no suspicious links or payment requests."
+            },
+            
+            // Bank / Financial Scams
+            {
+                from: "alerts@securebank-notify.com",
+                subject: "⚠️ FRAUD ALERT: Suspicious Transaction Detected",
+                body: "FRAUD ALERT<br><br>We detected a suspicious transaction on your account:<br><br><strong>Amount:</strong> $899.99<br><strong>Merchant:</strong> Electronics Store<br><br>If you did NOT authorize this, lock your account now:<br><span class='email-link'>http://bank-security-freeze.com/lock</span><br><br>You must respond within 1 hour or the transaction will be approved!<br><br>Bank Security Team",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Suspicious domain (securebank-notify.com), (2) High-dollar amount to create panic, (3) External account lock link, (4) Extreme urgency (1 hour), (5) Generic 'Bank Security Team'. Real banks call you for fraud, don't send urgent email links!"
+            },
+            
+            // LinkedIn / Job Scams
+            {
+                from: "jobs@linkedin-opportunities.net",
+                subject: "You've Been Selected for a High-Paying Remote Job!",
+                body: "Congratulations!<br><br>A top company wants to interview YOU for a remote position paying $5,000/month!<br><br><strong>Position:</strong> Data Entry Specialist<br><strong>Requirements:</strong> None! No experience needed!<br><br>Start application:<br><span class='email-link'>http://job-application-form.com/apply?id=LI583920</span><br><br>Limited spots available - apply in next hour!<br><br>LinkedIn Career Opportunities",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (linkedin-opportunities.net, not linkedin.com), (2) Unsolicited job offer, (3) Too good to be true ($5k/month, no experience), (4) External application link, (5) Urgent deadline. Real LinkedIn uses @linkedin.com!"
+            },
+            {
+                from: "messaging@linkedin.com",
+                subject: "You have new messages on LinkedIn",
+                body: "Hi there,<br><br>You have 2 new messages from your connections on LinkedIn.<br><br>View your messages at linkedin.com/messaging<br><br>LinkedIn",
+                type: "legitimate",
+                explanation: "This is legitimate. Official LinkedIn domain (@linkedin.com), simple notification, directs to official LinkedIn website, no suspicious links or requests for information."
+            },
+            
+            // Microsoft / Office 365 Scams
+            {
+                from: "security@microsoft-account.net",
+                subject: "Microsoft Account: Unusual Sign-in Activity",
+                body: "Microsoft Account Team<br><br>We detected an unusual sign-in to your Microsoft account from:<br><br><strong>Location:</strong> Russia<br><strong>Device:</strong> Unknown<br><br>If this wasn't you, secure your account immediately:<br><span class='email-link'>http://microsoft-secure-account.com/verify</span><br><br>Your account will be locked in 2 hours if you don't verify.<br><br>Microsoft Security",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Fake domain (microsoft-account.net, not microsoft.com), (2) Foreign location scare tactic, (3) External verification link, (4) Urgent 2-hour deadline. Real Microsoft emails come from @microsoft.com!"
+            },
+            
+            // School Emails (More Variety)
+            {
+                from: "athletics@matereastlv.org",
+                subject: "Basketball Game Schedule - Friday Night",
+                body: "Knights Basketball Update<br><br>Don't miss our home game this Friday!<br><br><strong>Date:</strong> Friday, November 1st<br><strong>Time:</strong> 6:00 PM<br><strong>Location:</strong> School Gymnasium<br><strong>Opponent:</strong> Desert High School<br><br>Come support your Knights! Admission is $5 for students.<br><br>Go Knights!<br>Coach Williams",
+                type: "legitimate",
+                explanation: "This is legitimate. Official school domain (@matereastlv.org), specific event details, reasonable admission price, relates to actual school activities, professional tone."
+            },
+            {
+                from: "scholarships@edu-grants.com",
+                subject: "🎓 You Pre-Qualify for $25,000 in College Grants!",
+                body: "CONGRATULATIONS STUDENT!<br><br>You have been PRE-APPROVED for up to $25,000 in college grant money!<br><br>This is FREE MONEY that never has to be paid back!<br><br>Complete your application NOW:<br><span class='email-link'>http://grant-application-2024.com/student/apply</span><br><br>Only available for the next 24 hours!<br><br>National Education Grant Program",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Unsolicited grant offer, (2) Not from school domain, (3) Too good to be true (guaranteed $25k), (4) High-pressure urgency (24 hours), (5) External application link. Real scholarships come through official school counselors!"
+            },
+            {
+                from: "counseling@matereastlv.org",
+                subject: "College Application Deadline Reminder",
+                body: "Hello Students,<br><br>This is a reminder that several college application deadlines are approaching:<br><br>• University of Nevada - Nov 15<br>• Nevada State - Nov 30<br>• UNLV - Dec 1<br><br>Please stop by the counseling office if you need help with applications or have questions about financial aid.<br><br>We're here to help!<br>Mrs. Thompson<br>School Counselor",
+                type: "legitimate",
+                explanation: "This is legitimate. Official school domain (@matereastlv.org), reasonable deadlines, offers help through proper channels (counseling office), professional and helpful tone, no suspicious links."
+            },
+            
+            // Instagram / Social Media Scams
+            {
+                from: "security@instagram-verify.com",
+                subject: "Your Instagram Account Will Be Deleted",
+                body: "Instagram Security Alert<br><br>Your account has been reported for violating our Community Guidelines. Your account will be permanently deleted in 24 hours.<br><br>To appeal this decision and save your account:<br><span class='email-link'>http://instagram-appeal-verify.com/appeal</span><br><br>If you don't appeal, all your photos and followers will be lost forever!<br><br>Instagram Support Team",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (instagram-verify.com, not instagram.com), (2) Threats of account deletion, (3) You didn't violate guidelines, (4) External appeal link, (5) Urgent deadline. Instagram communicates through in-app notifications!"
+            },
+            
+            // Spotify Scams
+            {
+                from: "premium@spotify-upgrade.net",
+                subject: "Get 3 Months FREE Spotify Premium!",
+                body: "Special Offer Just For You!<br><br>Enjoy 3 months of Spotify Premium absolutely FREE!<br><br>✓ Ad-free music<br>✓ Offline listening<br>✓ Unlimited skips<br><br>Claim your free trial:<br><span class='email-link'>http://spotify-free-premium.com/claim</span><br><br>Offer expires in 6 hours!<br><br>Spotify Premium Team",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (spotify-upgrade.net, not spotify.com), (2) Unsolicited premium offer, (3) External claim link, (4) Urgent expiration. Real Spotify promotions come from @spotify.com and are accessed through their official app/website!"
+            },
+            {
+                from: "no-reply@spotify.com",
+                subject: "Your Spotify Wrapped is ready! 🎵",
+                body: "Your year in music is here!<br><br>See your top artists, songs, and genres from 2024. Discover your unique listening personality and share it with friends.<br><br>View your Spotify Wrapped in the Spotify app.<br><br>Thanks for another great year of listening!<br>Spotify",
+                type: "legitimate",
+                explanation: "This is legitimate. Official Spotify domain (@spotify.com), refers to actual Spotify Wrapped feature, directs to Spotify app, seasonal timing makes sense, no suspicious links or payment requests."
+            },
+            
+            // Gaming / Discord Scams
+            {
+                from: "nitro@discord-gift.net",
+                subject: "Someone Gifted You Discord Nitro!",
+                body: "You received a gift! 🎁<br><br>A friend has gifted you 1 month of Discord Nitro!<br><br>Claim your Nitro:<br><span class='email-link'>http://discord-nitro-claim.com/gift?code=NITRO2024</span><br><br>Gift expires in 24 hours if not claimed!<br><br>Discord",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (discord-gift.net, not discord.com), (2) Unsolicited gift, (3) External claim link, (4) Urgent expiration. Real Discord Nitro gifts are shared through Discord app itself, not email!"
+            },
+            
+            // DoorDash / Food Delivery Scams
+            {
+                from: "support@doordash-delivery.net",
+                subject: "Your DoorDash Order is On Its Way! 🍕",
+                body: "Order Update<br><br>Your order from Pizza Place is being delivered!<br><br><strong>Order Total:</strong> $64.99<br><strong>Arriving:</strong> 30-40 minutes<br><br>If you didn't place this order, cancel it now:<br><span class='email-link'>http://doordash-cancel-order.com/stop</span><br><br>DoorDash",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (doordash-delivery.net, not doordash.com), (2) Order you didn't place, (3) High amount to create panic, (4) External cancel link. Real DoorDash sends updates through their app and uses @doordash.com!"
+            },
+            {
+                from: "no-reply@doordash.com",
+                subject: "Rate your delivery from Chipotle",
+                body: "How was your order?<br><br>Help us improve by rating your delivery experience and leaving a tip for your Dasher.<br><br>Rate your order in the DoorDash app.<br><br>Thanks for using DoorDash!",
+                type: "legitimate",
+                explanation: "This is legitimate. Official DoorDash domain (@doordash.com), standard post-delivery request, refers to DoorDash app, no suspicious links or payment requests."
+            },
+            
+            // IRS / Government Scams
+            {
+                from: "treasury@irs-refund.com",
+                subject: "You Have a $2,847 Tax Refund Pending",
+                body: "IRS NOTIFICATION<br><br>Our records show you have an unclaimed tax refund of $2,847.00<br><br>To receive your refund, complete the verification form:<br><span class='email-link'>http://irs-refund-claim.com/verify?ref=2024</span><br><br>You must claim within 48 hours or the refund will be forfeited to the U.S. Treasury.<br><br>Internal Revenue Service",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (irs-refund.com, not irs.gov), (2) IRS never notifies about refunds via email, (3) External verification link, (4) Urgent deadline, (5) Specific dollar amount to seem real. The IRS sends official mail, not emails!"
+            },
+            
+            // More School Emails
+            {
+                from: "cafeteria@matereastlv.org",
+                subject: "Lunch Menu Update - Week of November 4th",
+                body: "Weekly Lunch Menu<br><br>Next week's lunch options:<br><br><strong>Monday:</strong> Pizza & Salad<br><strong>Tuesday:</strong> Chicken Tacos<br><strong>Wednesday:</strong> Pasta Bar<br><strong>Thursday:</strong> Burgers<br><strong>Friday:</strong> Sub Sandwiches<br><br>Vegetarian options available daily. Questions about allergies? Contact us at ext. 245.<br><br>Cafeteria Staff",
+                type: "legitimate",
+                explanation: "This is legitimate. Official school domain (@matereastlv.org), routine cafeteria information, reasonable content, provides proper contact method (extension), no suspicious links."
+            },
+            {
+                from: "admin@matereast-lv.com",
+                subject: "Student Behavioral Report - Immediate Parent Contact Required",
+                body: "URGENT: Student Conduct Notice<br><br>This is to inform you that your student has received multiple behavioral violations. Immediate action required.<br><br>View full report and disciplinary action:<br><span class='email-link'>http://student-report-portal.com/view?id=ME2024</span><br><br>Failure to review within 24 hours may result in suspension.<br><br>Administration Office",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (matereast-lv.com vs matereastlv.org), (2) Tries to scare students/parents, (3) External report link, (4) Threats of suspension, (5) Urgent deadline. Real school discipline communications come through official channels, parent meetings, or phone calls!"
+            },
+            
+            // YouTube / Creator Scams
+            {
+                from: "partner@youtube-monetization.net",
+                subject: "Your YouTube Channel Has Been Selected for Monetization!",
+                body: "Congratulations!<br><br>Your channel has been approved for the YouTube Partner Program! Start earning money from your videos now!<br><br>Activate monetization:<br><span class='email-link'>http://youtube-activate-partner.com/enable</span><br><br>Set up required within 12 hours or approval expires!<br><br>YouTube Partner Program",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (youtube-monetization.net, not youtube.com), (2) Unsolicited partnership, (3) External activation link, (4) Urgent deadline. Real YouTube Partner Program notifications come through YouTube Studio and use @youtube.com!"
+            },
+            
+            // Best Buy Scams
+            {
+                from: "orders@bestbuy-orders.com",
+                subject: "Your Best Buy Order Confirmation - $1,299.99",
+                body: "Order Confirmation<br><br>Thank you for your purchase!<br><br><strong>Item:</strong> MacBook Pro 16-inch<br><strong>Total:</strong> $1,299.99<br><strong>Order #:</strong> BBY01-485920384<br><br>If you did NOT place this order, cancel immediately:<br><span class='email-link'>http://bestbuy-cancel-order.com/dispute</span><br><br>Best Buy",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (bestbuy-orders.com, not bestbuy.com), (2) High-value item you didn't order, (3) Creates panic to make you click, (4) External cancel link. Real Best Buy emails come from @bestbuy.com!"
+            },
+            
+            // Zoom Meeting Scams
+            {
+                from: "meetings@zoom-invite.net",
+                subject: "You have been invited to a Zoom meeting",
+                body: "Join Zoom Meeting<br><br><strong>Topic:</strong> Important Discussion<br><strong>Time:</strong> Oct 28, 2025 02:00 PM<br><strong>Host:</strong> Administrator<br><br>Join meeting:<br><span class='email-link'>http://zoom-meeting-join.com/j/485920384</span><br><br>Click the link to join the meeting.<br><br>Zoom Video Communications",
+                type: "phishing",
+                explanation: "This is PHISHING! Red flags: (1) Wrong domain (zoom-invite.net, not zoom.us), (2) Vague meeting topic 'Important Discussion', (3) Generic host name 'Administrator', (4) External meeting link. Real Zoom invites come from @zoom.us and have specific meeting details!"
+            },
+            {
+                from: "no-reply@zoom.us",
+                subject: "Mrs. Thompson's Science Class has invited you to a scheduled Zoom meeting",
+                body: "Join Zoom Meeting<br><br><strong>Topic:</strong> Science Fair Planning - Period 3<br><strong>Time:</strong> Oct 29, 2025 01:30 PM Pacific Time<br><strong>Host:</strong> Mrs. Thompson<br><br>Join via Zoom app or at zoom.us/j/4859203847<br><br>Meeting ID: 485 920 3847<br>Passcode: Science24<br><br>Zoom Video Communications",
+                type: "legitimate",
+                explanation: "This is legitimate. Official Zoom domain (@zoom.us), specific meeting topic and host name, includes meeting ID and passcode, directs to official zoom.us, reasonable meeting context for school."
+            }
+        ];
+
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let playerName = "";
+        let answered = false;
+        let quizQuestions = []; // Will hold the randomized 5 questions
+        let hasShownRedFlagPopup = false; // Track if we've shown the educational popup
+        let quizStartTime = 0; // Track when quiz started
+        let quizEndTime = 0; // Track when quiz ended
+
+        // Shuffle array function
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Start the quiz
+        function startQuiz() {
+            const nameInput = document.getElementById('playerName');
+            playerName = nameInput.value.trim();
+            
+            if (!playerName) {
+                alert('Please enter your name to start!');
+                return;
+            }
+
+            // Randomize and select 5 questions from the bank
+            const shuffled = shuffleArray(questionBank);
+            quizQuestions = shuffled.slice(0, 5);
+
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+            hasShownRedFlagPopup = false; // Reset for new quiz
+            quizStartTime = Date.now(); // Start the timer!
+            
+            document.querySelector('.intro-screen').classList.remove('active');
+            document.querySelector('.quiz-screen').classList.add('active');
+            
+            loadQuestion();
+        }
+
+        // Load current question
+        function loadQuestion() {
+            if (currentQuestion >= quizQuestions.length) {
+                showResults();
+                return;
+            }
+
+            answered = false;
+            const question = quizQuestions[currentQuestion];
+            
+            // Update progress
+            const progress = ((currentQuestion) / quizQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // Update counter
+            document.getElementById('questionCounter').textContent = 
+                `Question ${currentQuestion + 1} of ${quizQuestions.length}`;
+            
+            // Create email
+            const emailHTML = `
+                <div class="email-header">
+                    <div class="email-field"><strong>From:</strong> <span>${question.from}</span></div>
+                    <div class="email-field"><strong>Subject:</strong> <span>${question.subject}</span></div>
+                </div>
+                <div class="email-body">
+                    ${question.body}
+                </div>
+            `;
+            
+            document.getElementById('emailContainer').innerHTML = emailHTML;
+            
+            // Reset buttons and feedback
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('correct', 'incorrect');
+                btn.disabled = false;
+            });
+            
+            document.getElementById('feedback').classList.remove('show', 'correct', 'incorrect');
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        // Check answer
+        function checkAnswer(answer) {
+            if (answered) return;
+            
+            answered = true;
+            const question = quizQuestions[currentQuestion];
+            const isCorrect = answer === question.type;
+            
+            if (isCorrect) {
+                score++;
+                launchConfetti(); // 🎉 Celebrate correct answer!
+            }
+            
+            // Update buttons
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent.toLowerCase().includes(question.type)) {
+                    btn.classList.add('correct');
+                } else if (btn.textContent.toLowerCase().includes(answer)) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            // Show feedback
+            const feedback = document.getElementById('feedback');
+            feedback.classList.add('show', isCorrect ? 'correct' : 'incorrect');
+            feedback.innerHTML = `
+                <h3>${isCorrect ? '✅ Correct!' : '❌ Incorrect'}</h3>
+                <p><strong>This email was ${question.type.toUpperCase()}.</strong></p>
+                <p>${question.explanation}</p>
+            `;
+            
+            // Show red flag popup only for the FIRST phishing email they get WRONG
+            if (question.type === 'phishing' && !isCorrect && !hasShownRedFlagPopup) {
+                hasShownRedFlagPopup = true; // Mark as shown
+                setTimeout(() => showRedFlagPopup(question), 1500);
+            } else {
+                // Show next button for all other cases
+                document.getElementById('nextBtn').style.display = 'inline-block';
+            }
+        }
+
+        // Show red flag popup with visual indicators
+        function showRedFlagPopup(question) {
+            const popup = document.getElementById('redflagPopup');
+            const details = document.getElementById('redflagDetails');
+            
+            // Highlight suspicious links in the body
+            let highlightedBody = question.body;
+            highlightedBody = highlightedBody.replace(
+                /<span class='email-link'>(.*?)<\/span>/g,
+                "<span class='highlight-critical'>$1</span>"
+            );
+            
+            // Generate red flag indicators based on the email
+            let redFlags = generateRedFlags(question);
+            
+            details.innerHTML = `
+                <div class="redflag-email">
+                    <div class="email-field"><strong>From:</strong> <span class="highlight-critical">${question.from}</span></div>
+                    <div class="email-field"><strong>Subject:</strong> <span>${question.subject}</span></div>
+                    <hr style="margin: 15px 0; border: 1px solid #ddd;">
+                    <div>${highlightedBody}</div>
+                </div>
+                ${redFlags}
+                <div class="redflag-tip">
+                    <h3>💡 Remember:</h3>
+                    <p>Always check the sender's email domain, watch for urgent language, and never click suspicious links. When in doubt, verify through official channels!</p>
+                </div>
+            `;
+            
+            popup.classList.add('show');
+        }
+
+        // Generate red flag indicators for the email
+        function generateRedFlags(question) {
+            const from = question.from.toLowerCase();
+            const subject = question.subject.toLowerCase();
+            const body = question.body.toLowerCase();
+            
+            let flags = '';
+            
+            // Check for suspicious domain - only check root domains, not subdomains
+            const legitimateDomains = ['matereastlv.org', 'amazon.com', 'starbucks.com', 'usps.com', 
+                                       'target.com', 'paypal.com', 'netflix.com', 'apple.com',
+                                       'uber.com', 'linkedin.com', 'spotify.com', 'doordash.com', 'zoom.us'];
+            
+            const isLegitimate = legitimateDomains.some(domain => from.includes('@' + domain));
+            
+            if (!isLegitimate) {
+                flags += '<div class="redflag-indicator critical">🚨 SUSPICIOUS SENDER DOMAIN - The email address doesn\'t match the official company domain!</div>';
+            }
+            
+            // Check for urgency tactics
+            if (subject.includes('urgent') || subject.includes('immediate') || subject.includes('now') ||
+                body.includes('24 hours') || body.includes('expires in') || body.includes('limited time') ||
+                body.includes('act now') || body.includes('immediately')) {
+                flags += '<div class="redflag-indicator">⏰ URGENCY TACTICS - Creates false pressure to make you act without thinking!</div>';
+            }
+            
+            // Check for threats
+            if (body.includes('suspended') || body.includes('locked') || body.includes('deleted') ||
+                body.includes('closed') || body.includes('terminated') || body.includes('frozen')) {
+                flags += '<div class="redflag-indicator critical">⚠️ THREATENING LANGUAGE - Uses scare tactics to pressure you into clicking!</div>';
+            }
+            
+            // Check for suspicious links
+            if (body.includes('http://') || body.includes('class=\'email-link\'')) {
+                if (body.includes('http://')) {
+                    flags += '<div class="redflag-indicator critical">🔗 SUSPICIOUS LINK - Uses unsecure HTTP (not HTTPS) and directs to a non-official website!</div>';
+                } else {
+                    flags += '<div class="redflag-indicator critical">🔗 SUSPICIOUS LINK - External link to a non-official website asking for actions!</div>';
+                }
+            }
+            
+            // Check for prizes/offers
+            if (subject.includes('won') || subject.includes('winner') || subject.includes('free') ||
+                subject.includes('congratulations') || body.includes('claim your')) {
+                flags += '<div class="redflag-indicator">🎁 UNSOLICITED PRIZE - You didn\'t enter any contest or sweepstakes!</div>';
+            }
+            
+            // Check for payment requests
+            if (body.includes('pay') || body.includes('payment') || body.includes('billing') ||
+                body.includes('update your payment')) {
+                flags += '<div class="redflag-indicator">💳 PAYMENT REQUEST - Never enter payment info via email links!</div>';
+            }
+            
+            return flags || '<div class="redflag-indicator">This email has multiple red flags that indicate phishing!</div>';
+        }
+
+        // Close red flag popup
+        function closeRedFlagPopup() {
+            document.getElementById('redflagPopup').classList.remove('show');
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        }
+
+        // Next question
+        function nextQuestion() {
+            currentQuestion++;
+            loadQuestion();
+        }
+
+        // Show results
+        function showResults() {
+            quizEndTime = Date.now(); // Stop the timer!
+            const timeTaken = Math.floor((quizEndTime - quizStartTime) / 1000); // Time in seconds
+            
+            document.querySelector('.quiz-screen').classList.remove('active');
+            document.querySelector('.results-screen').classList.add('active');
+            
+            const percentage = (score / quizQuestions.length) * 100;
+            document.getElementById('finalScore').textContent = `${score}/${quizQuestions.length}`;
+            
+            let message = "";
+            // Prize message for 3+ correct answers!
+            if (score >= 3) {
+                message = "🎉 CONGRATULATIONS! You've won candy and a fidget toy! 🍬🎁<br><br>";
+            }
+            
+            if (percentage === 100) {
+                message += "Perfect score! You're a phishing detection expert! 🌟";
+            } else if (percentage >= 80) {
+                message += "Great job! You have excellent phishing awareness! 🎯";
+            } else if (percentage >= 60) {
+                message += "Good effort! Keep learning about cybersecurity! 💪";
+            } else {
+                message += "Keep practicing! Cybersecurity awareness takes time to develop. 📚";
+            }
+            
+            // Add time taken to message
+            const minutes = Math.floor(timeTaken / 60);
+            const seconds = timeTaken % 60;
+            const timeString = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+            message += `<br><br>⏱️ Time: ${timeString}`;
+            
+            document.getElementById('scoreMessage').innerHTML = message;
+            
+            // Save to leaderboard
+            saveToLeaderboard(timeTaken);
+        }
+
+        // Save to leaderboard
+        function saveToLeaderboard(timeTaken) {
+            let leaderboard = JSON.parse(localStorage.getItem('phishingLeaderboard') || '[]');
+            
+            const entry = {
+                name: playerName,
+                score: score,
+                total: quizQuestions.length,
+                time: timeTaken, // Time in seconds
+                date: new Date().toLocaleDateString(),
+                timestamp: new Date().getTime()
+            };
+            
+            leaderboard.push(entry);
+            
+            // Sort by score (descending), then by time (ascending - faster is better)
+            leaderboard.sort((a, b) => {
+                if (b.score !== a.score) {
+                    return b.score - a.score;
+                }
+                // If scores are equal, sort by time (lower time wins)
+                return (a.time || 999999) - (b.time || 999999);
+            });
+            
+            // Keep top 50
+            leaderboard = leaderboard.slice(0, 50);
+            
+            localStorage.setItem('phishingLeaderboard', JSON.stringify(leaderboard));
+        }
+
+        // Show leaderboard
+        function showLeaderboard() {
+            document.querySelector('.intro-screen').classList.remove('active');
+            document.querySelector('.quiz-screen').classList.remove('active');
+            document.querySelector('.results-screen').classList.remove('active');
+            document.querySelector('.leaderboard-screen').classList.add('active');
+            
+            displayLeaderboard();
+        }
+
+        // Display leaderboard
+        function displayLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('phishingLeaderboard') || '[]');
+            const tbody = document.getElementById('leaderboardBody');
+            
+            if (leaderboard.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">No scores yet! Be the first to play!</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = leaderboard.map((entry, index) => {
+                const rankClass = index < 3 ? `rank-${index + 1}` : '';
+                // Format time
+                let timeDisplay = '-';
+                if (entry.time) {
+                    const minutes = Math.floor(entry.time / 60);
+                    const seconds = entry.time % 60;
+                    timeDisplay = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+                }
+                return `
+                    <tr>
+                        <td class="rank ${rankClass}">#${index + 1}</td>
+                        <td>${entry.name}</td>
+                        <td><strong>${entry.score}/${entry.total}</strong></td>
+                        <td>${timeDisplay}</td>
+                        <td>${entry.date}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Back to intro
+        function backToIntro() {
+            document.querySelector('.leaderboard-screen').classList.remove('active');
+            document.querySelector('.intro-screen').classList.add('active');
+        }
+
+        // Restart quiz
+        function restartQuiz() {
+            document.querySelector('.results-screen').classList.remove('active');
+            document.querySelector('.intro-screen').classList.add('active');
+            document.getElementById('playerName').value = '';
+        }
+
+        // Reset leaderboard
+        function resetLeaderboard() {
+            if (confirm('Are you sure you want to clear all leaderboard scores? This cannot be undone!')) {
+                localStorage.removeItem('phishingLeaderboard');
+                displayLeaderboard();
+                alert('Leaderboard has been reset!');
+            }
+        }
+    </script>
+</body>
+</html>
+
