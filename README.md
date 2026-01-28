@@ -1,5 +1,7 @@
 # Phishing Awareness Quiz (Science Fair Project)
 
+**Live Demo:** https://j8ngg.github.io/phishing-awareness-quiz/
+
 An interactive, browser-based phishing awareness quiz designed for K–12 students.
 
 ## What it does
